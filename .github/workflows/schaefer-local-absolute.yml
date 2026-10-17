@@ -1,0 +1,16 @@
+name: Schaefer Local Absolute Diagnostic
+on:
+  push:
+    paths: ['schaefer_local_absolute_v1.js','benchmark_local_absolute.js','.github/workflows/schaefer-local-absolute.yml']
+  workflow_dispatch:
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - run: npm install --ignore-scripts
+      - run: node benchmark_local_absolute.js
+      - uses: actions/upload-artifact@v4
+        with: {name: local-absolute-result, path: local_absolute_result.json}
