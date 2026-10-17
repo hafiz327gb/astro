@@ -24,7 +24,11 @@ function localStripProfile(phaseAngleDeg, opts={}){
       const w=SchaeferV1.hapkeSmooth(mu0,mu,a,p);
       if(!(w>0)) continue;
       // psi=0 at midpoint of bright limb; 90 near cusp. Fold N/S symmetry.
-      const psi=Math.atan2(Math.abs(y),Math.abs(x))*180/Math.PI;
+      // Position angle along the crescent: a projected horizontal strip at y
+      // corresponds to psi = asin(|y|), with psi=0 at crescent midpoint
+      // and psi=90 at either horn/cusp. Integrating all illuminated x at
+      // fixed y is therefore the desired across-width strip integral.
+      const psi=Math.asin(clamp(Math.abs(y),0,1))*180/Math.PI;
       const k=Math.max(0,Math.min(180,Math.round(psi*2)));
       bins[k].signal+=w; bins[k].count++;
     }
