@@ -1,0 +1,23 @@
+name: Schaefer Observation 186 Benchmark
+on:
+  push:
+    paths:
+      - 'schaefer_reconstruction_v1_1.js'
+      - 'benchmark_observation186.js'
+      - 'package.json'
+      - '.github/workflows/schaefer-benchmark.yml'
+  workflow_dispatch:
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --ignore-scripts
+      - run: npm run benchmark
+      - uses: actions/upload-artifact@v4
+        with:
+          name: observation186-result
+          path: observation186_result.json
