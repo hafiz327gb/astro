@@ -1,0 +1,22 @@
+name: Schaefer 1991 Length Diagnostic
+on:
+  push:
+    paths:
+      - 'schaefer_local_strip_v1.js'
+      - 'schaefer_1991_length.js'
+      - 'benchmark_schaefer_1991_length.js'
+      - '.github/workflows/schaefer-1991-length.yml'
+  workflow_dispatch:
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - run: npm install --ignore-scripts
+      - run: node benchmark_schaefer_1991_length.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: schaefer-1991-length-result
+          path: schaefer_1991_length_result.json
