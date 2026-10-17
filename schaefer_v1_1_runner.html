@@ -1,10 +1,20 @@
-<!doctype html><meta charset="utf-8"><title>Schaefer Reconstruction v1.1</title>
-<style>body{font-family:system-ui;max-width:1100px;margin:32px auto;padding:0 16px}pre{white-space:pre-wrap;background:#f5f5f5;padding:16px;border-radius:10px}button{padding:10px 16px}</style>
-<h1>Schaefer Reconstruction v1.1 — Observation 186</h1>
-<p>This runner loads Astronomy Engine from jsDelivr and the Schaefer core from this repository.</p>
-<button onclick="run()">Run benchmark</button><pre id="out">Ready.</pre>
+<!doctype html><meta charset="utf-8"><title>Schaefer Reconstruction v1.2 diagnostics</title>
+<style>body{font-family:system-ui;max-width:1150px;margin:32px auto;padding:0 16px}pre{white-space:pre-wrap;background:#f5f5f5;padding:16px;border-radius:10px}button{padding:10px 16px}.ok{color:green}.bad{color:#b00020}</style>
+<h1>Schaefer Reconstruction v1.2 — Observation 186 Diagnostics</h1>
+<p>Checks loading, ephemeris geometry and the visibility scan separately. Expected historical checks: ARCL ≈ 11.9°, DAZ ≈ −0.4°, lag ≈ 55.5 min.</p>
+<button onclick="run()">Run diagnostics</button><pre id="out">Loading…</pre>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
 <script src="./schaefer_reconstruction_v1_1.js"></script>
 <script>
-function run(){try{if(!window.Astronomy)throw Error('Astronomy Engine failed to load');if(!window.SchaeferV1)throw Error('Schaefer core failed to load');const r=SchaeferV1.observation186();const compact={sunset:r.sunset,moonset:r.moonset,lagMin:r.lagMin,first:r.first,best:r.best,rows:r.rows.filter((_,i)=>i%5===0).map(x=>({time:x.date,min:x.minutesFromSunset,hSun:x.sun.altitude,hMoon:x.moon.altitude,ARCL:x.arcl,Bsky:x.sky.Bsky,dm:x.ext.deltaMag,V:x.vis.V,zeta:x.vis.zetaArcmin,branch:x.vis.branch}))};out.textContent=JSON.stringify(compact,null,2)}catch(e){out.textContent=e.stack||e}}
+const O=document.getElementById('out');
+function f(x,n=3){return Number.isFinite(x)?x.toFixed(n):String(x)}
+function run(){try{
+ const load={astronomy:!!window.Astronomy,schaefer:!!window.SchaeferV1};
+ if(!load.astronomy||!load.schaefer)throw Error('LOAD CHECK FAILED '+JSON.stringify(load));
+ const r=SchaeferV1.observation186();
+ const near=r.rows.reduce((a,x)=>Math.abs(x.arcl-11.9)<Math.abs(a.arcl-11.9)?x:a,r.rows[0]);
+ const report={load,ephemeris:{sunset:r.sunset,moonset:r.moonset,lagMin:r.lagMin,lagExpected:55.5,lagErrorMin:r.lagMin-55.5,nearestARCL119:{time:near.date,ARCL:near.arcl,ARCV:near.arcv,DAZ:near.daz,DAZExpected:-0.4,DAZError:near.daz+0.4,hSun:near.sun.altitude,hMoon:near.moon.altitude}},visibility:{first:r.first,best:r.best,validVRows:r.rows.filter(x=>Number.isFinite(x.vis.V)).length,totalRows:r.rows.length},sample:r.rows.filter((_,i)=>i%10===0).map(x=>({min:x.minutesFromSunset,hSun:x.sun.altitude,hMoon:x.moon.altitude,ARCL:x.arcl,ARCV:x.arcv,DAZ:x.daz,Bsky:x.sky.Bsky,dm:x.ext.deltaMag,V:x.vis.V,zeta:x.vis.zetaArcmin,branch:x.vis.branch,status:x.vis.status}))};
+ O.textContent=JSON.stringify(report,null,2);
+}catch(e){O.textContent=(e.stack||e)+'\n\nIf LOAD CHECK FAILED, open this page from GitHub Pages or a local web server; do not use ChatGPT inline preview.'}}
+window.addEventListener('load',()=>{O.textContent='Loaded. Click Run diagnostics.'});
 </script>
