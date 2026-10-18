@@ -1,0 +1,5 @@
+const fs=require('fs'),vm=require('vm');global.Astronomy=require('astronomy-engine');
+for(const f of ['schaefer_reconstruction_v1_1.js','schaefer_local_strip_v1.js','schaefer_local_absolute_v1.js','schaefer_ricco_cva_v1.js'])vm.runInThisContext(fs.readFileSync(f,'utf8'));
+const obs=new Astronomy.Observer(30,-90.1,0),start=new Date('1987-04-28T12:00:00Z'),ss=Astronomy.SearchRiseSet('Sun',obs,-1,start,1).date,ms=Astronomy.SearchRiseSet('Moon',obs,-1,start,1).date;
+let first=null,best=null,rows=[];for(let m=-45;m<=(ms-ss)/60000;m+=1){const r=SchaeferRiccoCVAV1.evaluate({date:new Date(ss.getTime()+m*60000),observer:obs});const q={min:m,hSun:r.hSun,hMoon:r.hMoon,phase:r.phaseDeg,Bsky:r.Bsky,thetaCVA:r.thetaCVA_arcmin,Fcell:r.Fcell_nL_arcmin2,V:r.V};rows.push(q);if(r.V>=1&&!first)first=q;if(!best||r.V>best.V)best=q;}
+const out={sunset:ss,moonset:ms,lagMin:(ms-ss)/60000,first,best,rows};fs.writeFileSync('observation186_ricco_cva.json',JSON.stringify(out,null,2));console.log(JSON.stringify({sunset:ss,moonset:ms,lagMin:out.lagMin,first,best},null,2));
