@@ -1,0 +1,6 @@
+const fs=require('fs'),vm=require('vm'); global.Astronomy=require('astronomy-engine');
+for(const f of ['schaefer_reconstruction_v1_1.js','schaefer_local_strip_v1.js','schaefer_local_absolute_v1.js','schaefer_local_visibility_v1.js']) vm.runInThisContext(fs.readFileSync(f,'utf8'));
+const obs=new Astronomy.Observer(30,-90.1,0), start=new Date('1987-04-28T12:00:00Z'), ss=Astronomy.SearchRiseSet('Sun',obs,-1,start,1).date, ms=Astronomy.SearchRiseSet('Moon',obs,-1,start,1).date;
+const arcs=[0.5,1,2], out={sunset:ss,moonset:ms,lagMin:(ms-ss)/60000,arcs:{}};
+for(const a of arcs){let first=null,best=null,rows=[];for(let m=-45;m<=(ms-ss)/60000;m+=2){const d=new Date(ss.getTime()+m*60000),r=SchaeferLocalVisibilityV1.evaluate({date:d,observer:obs,arcElementArcmin:a}); const q={min:m,hSun:r.g.sun.altitude,hMoon:r.g.moon.altitude,phase:r.phaseDeg,Bsky:r.sky.Bsky,width:r.widthArcmin,zeta:r.zetaArcmin,V:r.V,branch:r.thresholdBranch}; rows.push(q);if(r.V!=null&&r.V>=1&&!first)first=q;if(r.V!=null&&(!best||r.V>best.V))best=q;}out.arcs[a]={first,best,rows};}
+fs.writeFileSync('observation186_local_visibility.json',JSON.stringify(out,null,2));console.log(JSON.stringify({sunset:out.sunset,moonset:out.moonset,lagMin:out.lagMin,summary:Object.fromEntries(Object.entries(out.arcs).map(([k,v])=>[k,{first:v.first,best:v.best}]))},null,2));
