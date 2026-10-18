@@ -1,0 +1,16 @@
+name: Observation 186 Ricco CVA
+on:
+  push:
+    paths: ['schaefer_ricco_cva_v1.js','benchmark_observation186_ricco_cva.js','.github/workflows/observation186-ricco-cva.yml','schaefer_local_absolute_v1.js','schaefer_local_strip_v1.js','schaefer_reconstruction_v1_1.js']
+  workflow_dispatch:
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - run: npm install --ignore-scripts
+      - run: node benchmark_observation186_ricco_cva.js
+      - uses: actions/upload-artifact@v4
+        with: {name: observation186-ricco-cva, path: observation186_ricco_cva.json}
