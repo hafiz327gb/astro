@@ -1,7 +1,7 @@
 name: Observation 186 Local Visibility
 on:
   push:
-    paths: ['schaefer_reconstruction_v1_1.js','schaefer_local_visibility_v1.js','benchmark_observation186_local.js','.github/workflows/observation186-local.yml']
+    paths: ['schaefer_reconstruction_v1_1.js','schaefer_local_visibility_v1.js','schaefer_local_absolute_v1.js','schaefer_local_strip_v1.js','benchmark_observation186_local.js','.github/workflows/observation186-local.yml']
   workflow_dispatch:
 jobs:
   benchmark:
