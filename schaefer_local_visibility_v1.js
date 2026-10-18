@@ -20,7 +20,7 @@ function evaluate({date,observer,heightKm=0,kA=.06,kO3=.031,kSky=.20,arcElementA
  const zeta=2*Math.sqrt(area/Math.PI);
  const th=SchaeferV1.contrastThreshold(sky.Bsky,zeta);
  const Cactual=Bcres/sky.Bsky, V=th.Cth?Cactual/th.Cth:null;
- return {date:new Date(date),g,ext,sky,phaseDeg:ill.phase_angle,moonRadiusArcmin:R,psiDeg,arcElementArcmin,widthArcmin,areaArcmin2,zetaArcmin:zeta,Bcres_nL:Bcres,Cactual,Cth:th.Cth,V,thresholdBranch:th.branch,status:'RECONSTRUCTED_LOCAL_TARGET'};
+ return {date:new Date(date),g,ext,sky,phaseDeg:ill.phase_angle,moonRadiusArcmin:R,psiDeg,arcElementArcmin,widthArcmin,areaArcmin2:area,zetaArcmin:zeta,Bcres_nL:Bcres,Cactual,Cth:th.Cth,V,thresholdBranch:th.branch,status:'RECONSTRUCTED_LOCAL_TARGET'};
 }
 global.SchaeferLocalVisibilityV1={evaluate};
 })(typeof window!=='undefined'?window:globalThis);
