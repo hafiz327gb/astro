@@ -1,0 +1,16 @@
+name: Observation 186 Local Visibility
+on:
+  push:
+    paths: ['schaefer_reconstruction_v1_1.js','schaefer_local_visibility_v1.js','benchmark_observation186_local.js','.github/workflows/observation186-local.yml']
+  workflow_dispatch:
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - run: npm install --ignore-scripts
+      - run: node benchmark_observation186_local.js
+      - uses: actions/upload-artifact@v4
+        with: {name: observation186-local, path: observation186_local_visibility.json}
