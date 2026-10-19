@@ -1,0 +1,1 @@
+record_id,gregorian_date,hijri_month,hijri_year,site_name,latitude_deg,longitude_deg,elevation_m,timezone,observation_status,first_seen_local_time,observation_start_local_time,observation_end_local_time,optical_aid,naked_eye_confirmed,observer_count,weather_notes,source_reference,notes
