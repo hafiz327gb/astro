@@ -1,0 +1,9 @@
+{
+  "project":"Pakistan naked-eye crescent first-visibility calculator",
+  "schaeferPhaseStatus":"CLOSED_WITH_UNRESOLVED_PROPRIETARY_BRIDGE",
+  "validatedComponents":["geometry","atmospheric extinction framework","sky brightness framework","Eq12 lunar magnitude","Eq20-25 second moment framework","Eq36 threshold framework","26.33 photometric zero point"],
+  "rejectedFinalBridges":["whole_crescent_equivalent_disk","arbitrary_arc_segment","ricco_cva_cell","anisotropic_cva_aperture"],
+  "benchmark186":{"publishedR":"0.0 +/- 0.5","geometry":"PASS","absoluteR":"FAIL"},
+  "nextModel":"MODIFIED_SCHAEFER_PAKISTAN",
+  "rules":["no single-benchmark multiplier","no hard-coded Danjon cutoff","keep historical models independent","train/validate on separate Pakistan observations"]
+}
