@@ -1,0 +1,16 @@
+name: Observation 186 Anisotropic
+on:
+  push:
+    paths: ['schaefer_anisotropic_v1.js','benchmark_observation186_anisotropic.js','.github/workflows/observation186-anisotropic.yml']
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - run: npm install --ignore-scripts
+      - run: node benchmark_observation186_anisotropic.js
+      - uses: actions/upload-artifact@v4
+        with: {name: observation186-anisotropic, path: observation186_anisotropic.json}
