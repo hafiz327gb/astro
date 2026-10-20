@@ -1,0 +1,30 @@
+﻿"ICOP crescent observation reports, 2009-2026 (Hijri 1429-1448)",
+"Source: monthly result pages of the International Astronomical Center ICOP (astronomycenter.net/icop), downloaded 19 Oct 2026 by the project owner for private research. Copyright IAC; do not publish or redistribute. Permission was requested by email.",
+Parsed by tests/icop_parse.js and tests/icop_fields.js in the moon-visibility project; nothing was corrected by hand.,
+,
+"Sheet ""Reports"": one row per observer report (7426 rows).",
+"Sheet ""Engine_Scores"": project engine output for the 5383 reports that have a naked-eye label (seen / not seen), coordinates and an observing window.",
+,
+Column,Meaning
+report_id,page code + running number on that page (stable only for this download)
+hijri_month / hijri_year / page,which ICOP month page the report is on
+crescent,waxing (new) = evening crescent; waning (old) = morning crescent
+date,Gregorian date of the observation as shown on the page (local civil date of the session)
+time_of_observation,"After sunset / Before sunrise / Before sunset (daytime) / After sunrise (daytime), as reported"
+"country, city, state",as entered by the reporter (some in Arabic script or with typos)
+"latitude, longitude","from city_lat_lon.csv (Zenodo-derived city list); EMPTY for 901 reports whose place is not in that list. City-centre accuracy only, not the observing site."
+observer,ICOP member name as printed (public on the page)
+result_label,"ICOP headline: Seen / Not Seen / Photographed / Seen by others (any instrument, or by other people)"
+"sky, atmosphere",reporter-chosen words: sky = clear/partly cloudy/cloudy; atmosphere = superb/clear/hazy/very hazy
+"naked_eye, binocular, telescope, ccd","seen / not seen / not sought, per instrument. Use naked_eye for visibility work; ""seen by others"" and photographs can still have naked_eye = not seen."
+"observer_notes, full_text","the reporter's own words and the whole page text (clock times, altitudes etc. are only here, unparsed)"
+,
+Engine_Scores columns,
+window_min,length of the session window scored: evening sunset..moonset; morning moonrise..sunrise; daytime Moon-up and Sun-up part of the day
+engineB_raw_R / engineB_calibrated_R,"maximum over the window of log10(contrast/threshold); raw > 0 means visible; calibrated (zeta 100) visible if >= 0.5. Aerosol k_a 0.15, RH 0.5 for every row (the real dust is unknown)"
+engineA_margin,Bruin Fig 9 margin in degrees (>0 visible); outside design range in daytime/morning
+engineC_schaefer_R / engineC_modern_R,"external uloomweb engine, benchmark only"
+yallop_q_evening_only,Yallop q at best time; evening rows only
+naked_eye_seen,"1 seen, 0 not seen (the label the scores are compared with)"
+,
+"Known limits: labels are self-reported; some reporters are in cloud or haze; coordinates are city-level; scores test ""visible at any time in the session"", not the clock time of first sight; daytime classes are small and noisy.",
