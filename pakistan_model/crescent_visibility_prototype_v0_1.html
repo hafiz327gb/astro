@@ -114,6 +114,8 @@ async function getWeather(){
   const j=Math.min(17,f.hourly?.time?.length||1)-1;
   const hum=(f.hourly?.relative_humidity_2m?.[j]??60)/100;
   const cloud=f.hourly?.cloud_cover?.[j]??null;
+  const clouds=(f.hourly?.cloud_cover||[]).filter(x=>Number.isFinite(x));
+  window._weatherCloud=clouds.length?{mean:Math.round(clouds.reduce((a,b)=>a+b,0)/clouds.length),max:Math.max(...clouds)}:null;
   const aerosol=a.hourly?.aerosol_optical_depth?.[i]??null;
   $("humidity").value=hum.toFixed(2);
   if(aerosol!=null)$("ka").value=Math.max(.06,Math.min(1.5,.06+aerosol*.35)).toFixed(2);
