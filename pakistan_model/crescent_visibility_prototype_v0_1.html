@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pakistan Crescent Visibility — Research Prototype</title>
+<style>
+:root{--bg:#07111f;--card:#0d1b2e;--line:#233752;--txt:#edf4ff;--muted:#9fb2c9;--gold:#ffd34d;--green:#5bd39a;--red:#ff7f7f}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#07111f,#0a1422);color:var(--txt);font-family:system-ui,"Noto Nastaliq Urdu",sans-serif;line-height:1.65}
+.wrap{max-width:1100px;margin:auto;padding:24px}.hero{padding:10px 0 20px}.hero h1{margin:0;color:var(--gold);font-size:clamp(25px,4vw,38px)}.hero p{color:var(--muted);margin:6px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}.card{background:rgba(13,27,46,.96);border:1px solid var(--line);border-radius:14px;padding:17px}.card h2{font-size:19px;margin:0 0 12px;color:#fff}
+label{display:block;color:var(--muted);font-size:14px;margin:9px 0 4px}input,select,button{width:100%;padding:10px 11px;border-radius:9px;border:1px solid #35506e;background:#081523;color:#fff;font:inherit}button{background:#174b72;border-color:#3b79a7;cursor:pointer;margin-top:14px;font-weight:700}button:hover{background:#21648f}
+.result{margin-top:14px}.big{font-size:28px;font-weight:800;color:var(--gold)}.ok{color:var(--green)}.warn{color:var(--red)}.muted{color:var(--muted)}.pill{display:inline-block;border:1px solid #395674;border-radius:999px;padding:3px 9px;margin:3px;color:#c9d8e9;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px;border-bottom:1px solid #263b53;text-align:right}th{color:var(--gold)}
+.note{font-size:13px;color:var(--muted);background:#091523;border-radius:10px;padding:10px;margin-top:10px}.status{padding:10px;border-radius:10px;background:#0a1726;border:1px solid var(--line);margin-top:12px}
+footer{color:#7890a8;font-size:12px;padding:25px 0}
+@media(max-width:600px){.wrap{padding:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="hero">
+<h1>نیا ہلال — ابتدائی رؤیت کیلکولیٹر</h1>
+<p>Pakistan-oriented research prototype • Schaefer reconstruction + observational calibration path</p>
+<div class="note"><b>اہم:</b> یہ ابھی validated public prediction model نہیں ہے۔ Schaefer کے اصل LunarCal bridge کا ایک حصہ دستیاب published material سے reproduce نہیں ہوا؛ اس لیے یہ prototype موجودہ source-locked modules، reconstructed photometry اور پانچ موسمی scenarios کو ایک exploratory estimate میں جوڑتا ہے۔</div>
+</section>
+
+<div class="grid">
+<div class="card">
+<h2>1 — مقام اور تاریخ</h2>
+<label>تاریخ (مقامی کیلنڈر کی تاریخ)</label><input id="date" type="date">
+<label>Latitude</label><input id="lat" type="number" step="0.0001" value="24.8607">
+<label>Longitude</label><input id="lon" type="number" step="0.0001" value="67.0011">
+<label>ارتفاع (میٹر)</label><input id="height" type="number" value="0">
+<button id="calc">حساب کریں</button>
+</div>
+
+<div class="card">
+<h2>2 — موسم / فضائی شفافیت</h2>
+<label>رؤیت کے وقت کی متوقع کیفیت</label>
+<select id="weather">
+<option value="0">درجہ 1 — بالکل صاف، شفاف فضا</option>
+<option value="1">درجہ 2 — ہلکی گرد / معمولی دھندلا پن</option>
+<option value="2" selected>درجہ 3 — درمیانی گرد آلودگی</option>
+<option value="3">درجہ 4 — زیادہ گرد / haze</option>
+<option value="4">درجہ 5 — بہت زیادہ گرد، دھندلا افق</option>
+</select>
+<div class="note">اس مرحلے میں موسم کے درجات empirical Pakistan calibration کے متبادل نہیں ہیں۔ یہ research prototype میں atmospheric/contrast penalty کو scenario کے طور پر دکھاتے ہیں۔</div>
+</div>
+</div>
+
+<div id="out" class="result"></div>
+<div id="details" class="result"></div>
+
+<footer>Research prototype. Original Yallop/Bruin/Odeh/Schaefer outputs کو future versions میں الگ comparison columns کے طور پر شامل کیا جائے گا۔</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+<script src="schaefer_reconstruction_v1_1.js"></script>
+<script>
+const W=[
+ {name:"بالکل صاف",kSky:.20,seeingNight:1.5,penalty:1.00},
+ {name:"ہلکی گرد",kSky:.24,seeingNight:1.8,penalty:.78},
+ {name:"درمیانی گرد",kSky:.30,seeingNight:2.2,penalty:.56},
+ {name:"زیادہ گرد / haze",kSky:.38,seeingNight:2.8,penalty:.35},
+ {name:"بہت زیادہ گرد / دھندلا افق",kSky:.48,seeingNight:3.6,penalty:.18}
+];
+const $=id=>document.getElementById(id);
+function fmt(d){return new Intl.DateTimeFormat("ur-PK",{hour:"2-digit",minute:"2-digit",hour12:false}).format(d)}
+function mins(d1,d2){return (d1-d2)/60000}
+function run(){
+ const lat=+$("lat").value,lon=+$("lon").value,h=+$("height").value;
+ const ds=$("date").value;if(!ds){$("out").innerHTML='<div class="card warn">تاریخ منتخب کریں۔</div>';return}
+ const wc=+$("weather").value,w=W[wc];
+ try{
+  // Local civil date is represented by noon UTC here; scanEvening finds the local sunset.
+  const dateUTC=ds+"T12:00:00Z";
+  const r=SchaeferV1.scanEvening({dateUTC,lat,lon,heightM:h,kA:.06,kO3:.031,kSky:w.kSky,stepSec:60});
+  const rawFirst=r.first;
+  let first=rawFirst;
+  if(first && w.penalty<1){
+    // Scenario penalty is deliberately applied to the prototype's visibility margin, not presented as a source-locked formula.
+    first=null;
+    for(const row of r.rows){
+      if(row.vis&&row.vis.V!=null && row.vis.V>=1/w.penalty){first={date:row.date,V:row.vis.V};break}
+    }
+  }
+  let html='<div class="card"><h2>ابتدائی نتیجہ</h2>';
+  html+='<div class="pill">غروبِ آفتاب: '+fmt(r.sunset)+'</div>';
+  html+='<div class="pill">چاند غروب: '+fmt(r.moonset)+'</div>';
+  html+='<div class="pill">غروب کے بعد قیام: '+r.lagMin.toFixed(1)+' منٹ</div>';
+  if(first){
+   html+='<p>ممکنہ پہلی visibility crossing:</p><div class="big">'+fmt(first.date)+'</div>';
+   html+='<p class="ok">غروب کے بعد تقریباً <b>'+mins(first.date,r.sunset).toFixed(1)+' منٹ</b> پر prototype threshold crossing دیتا ہے۔</p>';
+  }else{
+   html+='<p class="big warn">اس scenario میں واضح visibility crossing نہیں ملی۔</p>';
+   html+='<p>اس کا مطلب یہ نہیں کہ رؤیت قطعی ناممکن ہے؛ صرف یہ کہ موجودہ experimental threshold میں crossing نہیں آئی۔</p>';
+  }
+  html+='<p class="muted">موسمی scenario: '+w.name+' — scenario penalty × '+w.penalty+'</p>';
+  html+='</div>';
+  $("out").innerHTML=html;
+
+  const sample=r.rows.filter(x=>Math.abs(x.minutesFromSunset%5)<.01).slice(0,20);
+  let t='<div class="card"><h2>اہم astronomical / photometric data</h2><table><tr><th>وقت</th><th>Sun alt</th><th>Moon alt</th><th>ARCL</th><th>V prototype</th></tr>';
+  for(const x of sample)t+='<tr><td>'+fmt(x.date)+'</td><td>'+x.sun.altitude.toFixed(2)+'°</td><td>'+x.moon.altitude.toFixed(2)+'°</td><td>'+x.arcl.toFixed(2)+'°</td><td>'+(x.vis.V==null?"—":x.vis.V.toFixed(2))+'</td></tr>';
+  t+='</table><div class="status"><b>Model boundary:</b> موجودہ Schaefer reconstruction کو original Schaefer/LunarCal reproduction نہ سمجھیں۔ یہ Pakistan model کی بنیاد رکھنے والا research prototype ہے۔</div></div>';
+  $("details").innerHTML=t;
+ }catch(e){$("out").innerHTML='<div class="card warn"><b>حساب میں مسئلہ:</b> '+e.message+'</div>'}
+}
+$("date").value=new Date().toISOString().slice(0,10);
+$("calc").addEventListener("click",run);
+</script>
+</body>
+</html>
