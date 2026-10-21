@@ -165,13 +165,30 @@ function run(){
  try{
 
   const dateUTC=dateStartUTC(ds,utc);
-  const results=[];
-  for(const ww of W){
-    const rr=SchaeferV1.scanEvening({dateUTC,lat,lon,heightM:h,kA:ka,kO3:.031,kSky:ww.kSky,stepSec:60});
-    const q=windowInfo(rr.rows,rr.sunset,ww.penalty,extra);
-    results.push({w:ww,r:rr,q});
-  }
-  const base=results[0].r;
+  // Run the expensive lunar photometry only once. Reuse it for all five weather scenarios.
+  const base=SchaeferV1.scanEvening({dateUTC,lat,lon,heightM:h,kA:ka,kO3:.031,kSky:W[0].kSky,stepSec:60});
+  const results=W.map(ww=>{
+    const rows=base.rows.map(row=>{
+      const ext=SchaeferV1.lunarExtinction(row.moon.altitude,h/1000,ka,.031);
+      const sky=SchaeferV1.skyBrightness({hSun:row.sun.altitude,hMoon:row.moon.altitude,arcl:row.arcl,k:ww.kSky});
+      let vis={V:null,status:'THRESHOLD_PENDING'};
+      if(row.sig){
+        const ratio=Math.pow(10,-.4*(ext.deltaMag-row.ext.deltaMag));
+        const Beq=(row.sig.equivalentSignal_nL_arcmin2*ratio)/(Math.PI*(SchaeferV1.equivalentDiameterArcmin(row.sig.muArcmin2,row.sun.altitude>0?3:1.5)/2)**2);
+        const z=SchaeferV1.equivalentDiameterArcmin(row.sig.muArcmin2,row.sun.altitude>0?3:1.5);
+        const th=SchaeferV1.contrastThreshold(sky.Bsky,z);
+        if(th.Cth!=null){
+          const Cactual=Beq/sky.Bsky,V=Cactual/th.Cth;
+          vis={V,Cactual,zetaArcmin:z,...th,status:'OK'};
+        }
+      }
+      return {...row,ext,sky,vis};
+    });
+    let first=null,best=null;
+    for(const row of rows){if(row.vis.V!=null&&row.vis.V>=1/ww.penalty&&row.moon.altitude>=0&&row.arcl>=extra){if(!first)first={date:row.date,V:row.vis.V};if(!best||row.vis.V>best.V)best={date:row.date,V:row.vis.V};}}
+    const q=windowInfo(rows,base.sunset,ww.penalty,extra);
+    return {w:ww,r:{...base,rows},q};
+  });
   const cloud=(window._weatherCloud??null);
 
   let out='<div class="card"><h2>'+($("city").value||"مقام")+' — '+ds+' (local, UTC'+(utc>=0?"+":"")+utc+')</h2>';
@@ -209,7 +226,7 @@ function run(){
   e+='<p><b>Engine C — external empirical benchmark:</b> Yallop/Odeh/Allawi-type criteria کو مستقبل میں الگ columns میں رکھا جائے گا؛ انہیں Schaefer V کے ساتھ combine نہیں کیا جائے گا۔</p>';
   e+='<div class="note">اس طرح calculator کی UI مکمل رہتی ہے، مگر غیر ثابت شدہ formula کو سائنسی نتیجے کے طور پر پیش نہیں کیا جاتا۔</div></div>';$("engines").innerHTML=e;
 
-  const sample=r.rows.filter(x=>x.moon.altitude>=0).filter((x,i)=>i%5===0).slice(0,30);
+  const sample=base.rows.filter(x=>x.moon.altitude>=0).filter((x,i)=>i%5===0).slice(0,30);
   let t='<div class="card"><h2>تفصیلی astronomical / photometric data</h2><table><tr><th>Time</th><th>Sun alt</th><th>Moon alt</th><th>ARCL</th><th>ARCV</th><th>Azimuth Δ</th><th>V</th></tr>';
   sample.forEach(x=>{t+='<tr><td>'+fmt(x.date)+'</td><td>'+x.sun.altitude.toFixed(2)+'°</td><td>'+x.moon.altitude.toFixed(2)+'°</td><td>'+x.arcl.toFixed(2)+'°</td><td>'+x.arcv.toFixed(2)+'°</td><td>'+x.daz.toFixed(2)+'°</td><td>'+(x.vis.V==null?"—":x.vis.V.toFixed(2))+'</td></tr>'});t+='</table><div class="status"><b>Research boundary:</b> original LunarCal visual-target/R bridge unresolved ہے۔ اس لیے calibrated/reconstructed model کو official visibility declaration نہ سمجھیں۔</div></div>';$("data").innerHTML=t;
  }catch(e){$("out").innerHTML='<div class="card warn"><b>حساب میں مسئلہ:</b> '+e.message+'<br><span class="muted">اگر مسئلہ برقرار رہے تو browser console میں JavaScript error بھی دکھایا جا سکتا ہے۔</span></div>'}
